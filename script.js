@@ -1,7 +1,7 @@
 // ===============================
 // CONFIGURATION
 // ===============================
-const API_TOKEN = "hf_your_huggingface_token_here"; // 🔑 Paste your Hugging Face token
+const API_TOKEN = "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"; // 🔑 Paste your Hugging Face token
 const MODEL = "facebook/bart-large-cnn";
 const API_URL = `https://api-inference.huggingface.co/models/${MODEL}`;
 
