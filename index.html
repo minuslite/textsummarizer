@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Summarizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --ink: #1a1a18;
+      --ink-muted: #6b6b66;
+      --ink-faint: #b4b2a9;
+      --surface: #faf9f6;
+      --panel: #f1efe8;
+      --border: rgba(26,26,24,0.12);
+      --border-strong: rgba(26,26,24,0.25);
+      --accent: #1D9E75;
+      --accent-light: #E1F5EE;
+      --accent-dark: #0F6E56;
+      --danger: #D85A30;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--surface);
+      color: var(--ink);
+      min-height: 100vh;
+      padding: 2rem 1rem 4rem;
+    }
+
+    .page-wrap {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+      margin-bottom: 2.5rem;
+      padding-bottom: 1.25rem;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .logo-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: var(--accent);
+      flex-shrink: 0;
+      margin-bottom: 4px;
+    }
+
+    h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.75rem;
+      font-weight: 400;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+
+    .tagline {
+      margin-left: auto;
+      font-size: 0.8rem;
+      color: var(--ink-faint);
+      font-weight: 300;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+    }
+
+    .api-bar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+      background: var(--panel);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+    }
+
+    .api-bar label {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink-muted);
+      white-space: nowrap;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .api-bar input {
+      flex: 1;
+      border: none;
+      background: transparent;
+      font-family: 'DM Sans', monospace;
+      font-size: 13px;
+      color: var(--ink);
+      outline: none;
+      min-width: 0;
+    }
+
+    .api-bar input::placeholder { color: var(--ink-faint); }
+
+    .toggle-eye {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--ink-faint);
+      font-size: 13px;
+      padding: 2px 4px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .toggle-eye:hover { color: var(--ink); }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.25rem;
+    }
+
+    @media (max-width: 580px) {
+      .layout { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: #fff;
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .panel-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      border-bottom: 0.5px solid var(--border);
+      background: var(--panel);
+    }
+
+    .panel-head h2 {
+      font-size: 11px;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+    }
+
+    .char-count {
+      font-size: 11px;
+      color: var(--ink-faint);
+      font-variant-numeric: tabular-nums;
+    }
+
+    textarea {
+      flex: 1;
+      border: none;
+      resize: none;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      line-height: 1.7;
+      color: var(--ink);
+      background: #fff;
+      padding: 16px;
+      outline: none;
+      min-height: 260px;
+    }
+
+    textarea::placeholder { color: var(--ink-faint); }
+
+    .output-body {
+      flex: 1;
+      padding: 16px;
+      min-height: 260px;
+      font-size: 14px;
+      line-height: 1.75;
+      color: var(--ink);
+    }
+
+    .output-placeholder {
+      color: var(--ink-faint);
+      font-style: italic;
+      font-size: 13px;
+    }
+
+    .output-text { color: var(--ink); }
+
+    .btn-row {
+      padding: 12px 16px;
+      border-top: 0.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .options-row {
+      display: flex;
+      gap: 6px;
+    }
+
+    .chip {
+      font-size: 11px;
+      font-weight: 500;
+      padding: 4px 10px;
+      border-radius: 20px;
+      border: 0.5px solid var(--border-strong);
+      background: transparent;
+      color: var(--ink-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+      font-family: 'DM Sans', sans-serif;
+    }
+
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+    .chip.active { background: var(--accent-light); border-color: var(--accent); color: var(--accent-dark); }
+
+    .btn-summarize {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--ink);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 20px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+
+    .btn-summarize:hover { background: #333; }
+    .btn-summarize:active { transform: scale(0.98); }
+    .btn-summarize:disabled { background: var(--ink-faint); cursor: not-allowed; transform: none; }
+
+    .spinner {
+      width: 12px; height: 12px;
+      border: 1.5px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .btn-summarize.loading .spinner { display: block; }
+    .btn-summarize.loading .btn-label { opacity: 0.7; }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .copy-btn {
+      background: none;
+      border: 0.5px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 10px;
+      font-size: 11px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink-muted);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .copy-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+    .error-msg {
+      display: none;
+      font-size: 12px;
+      color: var(--danger);
+      padding: 8px 16px 0;
+    }
+
+    .error-msg.visible { display: block; }
+
+    .status-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: inline-block;
+      margin-right: 5px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-wrap">
+    <header>
+      <div class="logo-dot"></div>
+      <h1>Text Summarizer</h1>
+      <span class="tagline">Powered by Gemini</span>
+    </header>
+
+    <div class="api-bar">
+      <label>API Key</label>
+      <input type="password" id="apiKey" placeholder="Paste your Gemini API key here..." autocomplete="off" />
+      <button class="toggle-eye" id="toggleEye" title="Show/hide key">show</button>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Input</h2>
+          <span class="char-count" id="charCount">0 chars</span>
+        </div>
+        <textarea id="inputText" placeholder="Paste or type your text here..."></textarea>
+        <div class="btn-row">
+          <div class="options-row">
+            <button class="chip active" data-mode="concise">Concise</button>
+            <button class="chip" data-mode="detailed">Detailed</button>
+            <button class="chip" data-mode="bullets">Bullets</button>
+          </div>
+          <button class="btn-summarize" id="summarizeBtn">
+            <div class="spinner"></div>
+            <span class="btn-label">Summarize</span>
+          </button>
+        </div>
+        <div class="error-msg" id="errorMsg"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>
+            <span id="statusDot" style="display:none" class="status-dot"></span>
+            Summary
+          </h2>
+          <button class="copy-btn" id="copyBtn" style="display:none">Copy</button>
+        </div>
+        <div class="output-body" id="outputBody">
+          <p class="output-placeholder">Your summary will appear here…</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const inputEl = document.getElementById('inputText');
+    const outputEl = document.getElementById('outputBody');
+    const charCountEl = document.getElementById('charCount');
+    const btn = document.getElementById('summarizeBtn');
+    const errorEl = document.getElementById('errorMsg');
+    const copyBtn = document.getElementById('copyBtn');
+    const apiKeyEl = document.getElementById('apiKey');
+    const toggleEye = document.getElementById('toggleEye');
+    const statusDot = document.getElementById('statusDot');
+
+    let activeMode = 'concise';
+
+    inputEl.addEventListener('input', () => {
+      const n = inputEl.value.length;
+      charCountEl.textContent = n.toLocaleString() + ' chars';
+    });
+
+    document.querySelectorAll('.chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        activeMode = chip.dataset.mode;
+      });
+    });
+
+    toggleEye.addEventListener('click', () => {
+      const isHidden = apiKeyEl.type === 'password';
+      apiKeyEl.type = isHidden ? 'text' : 'password';
+      toggleEye.textContent = isHidden ? 'hide' : 'show';
+    });
+
+    copyBtn.addEventListener('click', () => {
+      const text = outputEl.innerText;
+      navigator.clipboard.writeText(text).then(() => {
+        copyBtn.textContent = 'Copied!';
+        setTimeout(() => copyBtn.textContent = 'Copy', 1800);
+      });
+    });
+
+    function getModePrompt(mode) {
+      if (mode === 'concise') return 'Provide a concise 2-3 sentence summary of the following text. Be clear and capture the key point.';
+      if (mode === 'detailed') return 'Provide a detailed summary of the following text in 4-6 sentences. Cover the main ideas, key details, and conclusion.';
+      if (mode === 'bullets') return 'Summarize the following text as 4-6 clear bullet points. Each bullet should start with a dash (-) and capture one key idea.';
+    }
+
+    function renderOutput(text) {
+      if (activeMode === 'bullets') {
+        const lines = text.split('\n').filter(l => l.trim());
+        outputEl.innerHTML = lines.map(line => {
+          const clean = line.replace(/^[-*•]\s*/, '');
+          return `<p style="display:flex;gap:8px;margin-bottom:10px"><span style="color:var(--accent);flex-shrink:0;font-weight:500">—</span><span>${clean}</span></p>`;
+        }).join('');
+      } else {
+        outputEl.innerHTML = `<p class="output-text">${text.replace(/\n\n/g, '</p><p class="output-text" style="margin-top:10px">').replace(/\n/g, ' ')}</p>`;
+      }
+    }
+
+    btn.addEventListener('click', async () => {
+      const apiKey = apiKeyEl.value.trim();
+      const text = inputEl.value.trim();
+
+      errorEl.classList.remove('visible');
+
+      if (!apiKey) {
+        errorEl.textContent = 'Please enter your Gemini API key above.';
+        errorEl.classList.add('visible');
+        apiKeyEl.focus();
+        return;
+      }
+
+      if (!text) {
+        errorEl.textContent = 'Please enter some text to summarize.';
+        errorEl.classList.add('visible');
+        inputEl.focus();
+        return;
+      }
+
+      if (text.length < 30) {
+        errorEl.textContent = 'Text is too short to summarize — try something longer.';
+        errorEl.classList.add('visible');
+        return;
+      }
+
+      btn.disabled = true;
+      btn.classList.add('loading');
+      outputEl.innerHTML = `<p class="output-placeholder">Summarizing…</p>`;
+      copyBtn.style.display = 'none';
+      statusDot.style.display = 'none';
+
+      const prompt = getModePrompt(activeMode) + '\n\nText:\n' + text;
+
+      try {
+        const res = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: prompt }] }],
+              generationConfig: { temperature: 0.4, maxOutputTokens: 512 }
+            })
+          }
+        );
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          const msg = data?.error?.message || `API error ${res.status}`;
+          throw new Error(msg);
+        }
+
+        const summary = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!summary) throw new Error('No summary returned. Please try again.');
+
+        renderOutput(summary.trim());
+        copyBtn.style.display = 'block';
+        statusDot.style.display = 'inline-block';
+
+      } catch (err) {
+        outputEl.innerHTML = `<p class="output-placeholder">Something went wrong.</p>`;
+        errorEl.textContent = err.message;
+        errorEl.classList.add('visible');
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('loading');
+      }
+    });
+  </script>
+</body>
+</html>
