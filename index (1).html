@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Text Summarizer</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="page-wrap">
+    <header>
+      <div class="logo-dot"></div>
+      <h1>Text Summarizer</h1>
+      <span class="tagline">Powered by Hugging Face</span>
+    </header>
+
+    <div class="api-bar">
+      <label>HF Token</label>
+      <input type="password" id="apiKey" placeholder="Paste your Hugging Face token here (hf_...)" autocomplete="off" />
+      <button class="toggle-eye" id="toggleEye">show</button>
+    </div>
+
+    <div class="layout">
+      <div class="panel">
+        <div class="panel-head">
+          <h2>Input</h2>
+          <span class="char-count" id="charCount">0 chars</span>
+        </div>
+        <textarea id="inputText" placeholder="Paste or type your text here...&#10;&#10;Tip: works best with 100+ words."></textarea>
+        <div class="btn-row">
+          <div class="options-row">
+            <button class="chip active" data-len="short">Short</button>
+            <button class="chip" data-len="medium">Medium</button>
+            <button class="chip" data-len="long">Long</button>
+          </div>
+          <button class="btn-summarize" id="summarizeBtn">
+            <div class="spinner"></div>
+            <span class="btn-label">Summarize</span>
+          </button>
+        </div>
+        <div class="error-msg" id="errorMsg"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h2>
+            <span id="statusDot" style="display:none" class="status-dot"></span>
+            Summary
+          </h2>
+          <button class="copy-btn" id="copyBtn" style="display:none">Copy</button>
+        </div>
+        <div class="output-body" id="outputBody">
+          <p class="output-placeholder">Your summary will appear here…</p>
+        </div>
+      </div>
+    </div>
+
+    <p class="model-note">Using <a href="https://huggingface.co/facebook/bart-large-cnn" target="_blank">facebook/bart-large-cnn</a> — free via Hugging Face Inference API</p>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
